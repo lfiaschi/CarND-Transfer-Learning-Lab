@@ -25,4 +25,5 @@ These can be downloaded from the following links:
 - [![inception](https://d17h27t6h515a5.cloudfront.net/topher/2016/November/5834b498_inception-100/inception-100.zip)]
 
 The file `main.py` contains my implementation of training and testing on the bottleneck features.
+The file `Baseline CIFAR.ipynb` contains a baseline on the CIFAR dataset using Lenet implented in Keras
 
