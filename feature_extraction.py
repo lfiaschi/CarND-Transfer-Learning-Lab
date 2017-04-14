@@ -1,6 +1,10 @@
 import pickle
 import tensorflow as tf
-# TODO: import Keras layers you need here
+import keras
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, Flatten
+from keras.layers import Conv2D, MaxPooling2D
+import numpy as np
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
@@ -37,19 +41,52 @@ def load_bottleneck_data(training_file, validation_file):
 def main(_):
     # load bottleneck data
     X_train, y_train, X_val, y_val = load_bottleneck_data(FLAGS.training_file, FLAGS.validation_file)
-
+    
+    X_train=X_train.squeeze()
+    y_train=y_train.squeeze()
+    X_val=X_val.squeeze()
+    y_val=y_val.squeeze()
+    
+    num_classes = len(np.unique(y_train))
+    input_shape = X_train.shape[1:]
+    
     print(X_train.shape, y_train.shape)
     print(X_val.shape, y_val.shape)
 
-    # TODO: define your model and hyperparams here
-    # make sure to adjust the number of classes based on
-    # the dataset
-    # 10 for cifar10
-    # 43 for traffic
+    dropout = .3
+    batch_size = 128
+    epochs = 500
+    
+    model = Sequential()
+    model.add(Dense(256, activation='relu',input_shape=input_shape))
+    model.add(Dropout(dropout))
+    model.add(Dense(128, activation='relu'))
+    model.add(Dropout(dropout))
+    model.add(Dense(84, activation='relu'))
+    model.add(Dropout(dropout))
+    model.add(Dense(num_classes, activation='softmax'))
 
-    # TODO: train your model here
+    model.compile(loss=keras.losses.sparse_categorical_crossentropy,
+                  optimizer=keras.optimizers.Adam(),
+                  metrics=['accuracy'])
 
 
+    from keras.callbacks import EarlyStopping
+    early_stopping = EarlyStopping(monitor='val_loss', patience=30)
+
+    model.fit(X_train, y_train,
+          batch_size=batch_size,
+          epochs=epochs,
+          verbose=1,
+          validation_split=.3, 
+          callbacks=[early_stopping])
+    
+    score = model.evaluate(X_val, y_val, verbose=0)
+    print('Test loss:', score[0])
+    print('Test accuracy:', score[1])
+    import gc; gc.collect()
+    
+    
 # parses flags and calls the `main` function above
 if __name__ == '__main__':
     tf.app.run()
